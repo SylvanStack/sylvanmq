@@ -15,10 +15,11 @@ public class SylvanMqDemo {
         SylvanBroker broker = new SylvanBroker();
         broker.createTopic(topic);
 
-        SylvanProducer producer = new SylvanProducer(broker);
-        SylvanConsumer<Order> consumer = new SylvanConsumer<>(broker);
+        SylvanProducer producer = broker.createProducer();
+        SylvanConsumer<?> consumer = broker.createConsumer(topic);
 
         consumer.subscribe(topic);
+        consumer.listen((message) -> System.out.println("收到消息：" + message.getBody()));
 
         new Thread(() -> {
             for (int i = 0; i < 1000; i++) {
@@ -33,14 +34,14 @@ public class SylvanMqDemo {
             }
         }).start();
 
-        new Thread(() -> {
-            while (true) {
-                SylvanMessage<Order> orderSylvanMessage = consumer.poll(1000);
-                if (orderSylvanMessage != null) {
-                    System.out.println("消费消息：" + orderSylvanMessage.getBody());
-                }
-            }
-        }).start();
+        //new Thread(() -> {
+        //    while (true) {
+        //        SylvanMessage<Order> orderSylvanMessage = consumer.poll(1000);
+        //        if (orderSylvanMessage != null) {
+        //            System.out.println("消费消息：" + orderSylvanMessage.getBody());
+        //        }
+        //    }
+        //}).start();
 
 
     }

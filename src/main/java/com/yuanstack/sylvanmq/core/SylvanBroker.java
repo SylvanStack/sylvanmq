@@ -20,4 +20,14 @@ public class SylvanBroker {
         return mqMapping.putIfAbsent(topic, new SylvanMQ(topic));
     }
 
+    public SylvanProducer createProducer() {
+        return new SylvanProducer(this);
+    }
+
+    public SylvanConsumer<?> createConsumer(String topic) {
+        SylvanConsumer<?> sylvanConsumer = new SylvanConsumer<>(this);
+        sylvanConsumer.subscribe(topic);
+        return sylvanConsumer;
+    }
+
 }

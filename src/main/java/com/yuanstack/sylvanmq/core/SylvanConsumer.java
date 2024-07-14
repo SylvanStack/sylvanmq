@@ -24,4 +24,8 @@ public class SylvanConsumer<T> {
     public SylvanMessage<T> poll(long timeout) {
         return mq.poll(timeout);
     }
+
+    public void listen(SylvanMessageListener<T> listener) {
+        mq.addListener(listener);
+    }
 }
