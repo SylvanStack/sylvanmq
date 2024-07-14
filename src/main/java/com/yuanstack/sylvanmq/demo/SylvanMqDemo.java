@@ -1,9 +1,9 @@
 package com.yuanstack.sylvanmq.demo;
 
-import com.yuanstack.sylvanmq.core.SylvanBroker;
-import com.yuanstack.sylvanmq.core.SylvanConsumer;
-import com.yuanstack.sylvanmq.core.SylvanMessage;
-import com.yuanstack.sylvanmq.core.SylvanProducer;
+import com.yuanstack.sylvanmq.client.SylvanBroker;
+import com.yuanstack.sylvanmq.client.SylvanConsumer;
+import com.yuanstack.sylvanmq.model.SylvanMessage;
+import com.yuanstack.sylvanmq.client.SylvanProducer;
 
 /**
  * @author Sylvan

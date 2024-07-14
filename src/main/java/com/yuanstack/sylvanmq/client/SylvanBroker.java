@@ -1,4 +1,4 @@
-package com.yuanstack.sylvanmq.core;
+package com.yuanstack.sylvanmq.client;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,5 +1,6 @@
-package com.yuanstack.sylvanmq.core;
+package com.yuanstack.sylvanmq.client;
 
+import com.yuanstack.sylvanmq.model.SylvanMessage;
 import lombok.AllArgsConstructor;
 
 /**

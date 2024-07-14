@@ -1,3 +1,5 @@
 spring:
   application:
     name: sylvanmq
+server:
+  port: 8765
