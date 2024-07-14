@@ -1,9 +1,12 @@
 package com.yuanstack.sylvanmq.core;
 
+import lombok.AllArgsConstructor;
+
 /**
  * @author Sylvan
  * @date 2024/07/14  16:57
  */
+@AllArgsConstructor
 public class SylvanProducer {
     SylvanBroker broker;
 
