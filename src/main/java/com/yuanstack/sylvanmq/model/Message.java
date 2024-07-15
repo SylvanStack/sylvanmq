@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SylvanMessage<T> implements Serializable {
+public class Message<T> implements Serializable {
 
     //private String topic;
     static AtomicLong idgen = new AtomicLong(0);
@@ -34,14 +35,14 @@ public class SylvanMessage<T> implements Serializable {
     /**
      * 消息头 系统属性 消息属性 消息优先级、消息过期时间 X-version = 1.0
      */
-    private Map<String, String> header;
+    private Map<String, String> headers = new HashMap<>();
 
     public static long getId() {
         return idgen.getAndIncrement();
     }
 
-    public static SylvanMessage<?> create(String body, Map<String, String> headers) {
-        return new SylvanMessage<>(getId(), body, headers);
+    public static Message<?> create(String body, Map<String, String> headers) {
+        return new Message<>(getId(), body, headers);
     }
     ///**
     // * 消息标签

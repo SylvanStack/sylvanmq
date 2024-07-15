@@ -21,11 +21,11 @@ public class Result<T> {
         return new Result<>(1, msg);
     }
 
-    public static Result<SylvanMessage<?>> msg(String msg) {
-        return new Result<>(1, SylvanMessage.create(msg, null));
+    public static Result<Message<?>> msg(String msg) {
+        return new Result<>(1, Message.create(msg, null));
     }
 
-    public static Result<SylvanMessage<?>> msg(SylvanMessage<?> msg) {
+    public static Result<Message<?>> msg(Message<?> msg) {
         return new Result<>(1, msg);
     }
 }
