@@ -1,0 +1,16 @@
+### sub
+GET http://localhost:8765/sylvanmq/subscribe?t=com.yuanstack.test&cid=CID1
+
+### send
+POST http://localhost:8765/sylvanmq/send?t=com.yuanstack.test
+Content-Type: application/json
+
+{
+  "body": "{\"item\":\"apple0\",\"price\":1.0,\"id\":\"0\"}"
+}
+
+### receive
+GET http://localhost:8765/sylvanmq/receive?t=com.yuanstack.test&cid=CID1
+
+### ack
+GET http://localhost:8765/sylvanmq/ack?t=com.yuanstack.test&cid=CID1&offset=1
