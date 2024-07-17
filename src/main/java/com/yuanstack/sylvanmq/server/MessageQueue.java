@@ -1,6 +1,11 @@
 package com.yuanstack.sylvanmq.server;
 
 import com.yuanstack.sylvanmq.model.Message;
+import com.yuanstack.sylvanmq.model.Stat;
+import com.yuanstack.sylvanmq.model.Subscription;
+import com.yuanstack.sylvanmq.store.Indexer;
+import com.yuanstack.sylvanmq.store.Store;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,35 +23,48 @@ public class MessageQueue {
 
     static {
         queues.put(TEST_TOPIC, new MessageQueue(TEST_TOPIC));
-        queues.put("a", new MessageQueue("a"));
+        //queues.put("a", new MessageQueue("a"));
     }
 
-    private Map<String, MessageSubscription> subscriptions = new HashMap<>();
-    private String topic;
-    private Message<?>[] queue = new Message[1024 * 10];
-    private int index = 0;
+    private Map<String, Subscription> subscriptions = new HashMap<>();
+    @Getter
+    private final String topic;
+    //private Message<?>[] queue = new Message[1024 * 10];
+    //private int index = 0;
+    @Getter
+    private Store store = null;
 
     public MessageQueue(String topic) {
         this.topic = topic;
+        store = new Store(topic);
+        store.init();
     }
 
-    public int send(Message<?> message) {
-        if (index >= queue.length) {
-            return -1;
-        }
-        message.getHeaders().put("X-offset", String.valueOf(index));
-        queue[index++] = message;
-        return index;
+    public static Stat stat(String topic, String consumerId) {
+        MessageQueue queue = queues.get(topic);
+        Subscription subscription = queue.subscriptions.get(consumerId);
+        return new Stat(subscription, queue.getStore().total(), queue.getStore().pos());
+    }
+
+    public int send(Message<String> message) {
+        int offset = store.pos();
+        message.getHeaders().put("X-offset", String.valueOf(offset));
+        store.write(message);
+        return offset;
     }
 
     public static List<Message<?>> batch(String topic, String consumerId, int size) {
         MessageQueue messageQueue = queues.get(topic);
         if (messageQueue == null) throw new RuntimeException("topic not found");
         if (messageQueue.subscriptions.containsKey(consumerId)) {
-            int ind = messageQueue.subscriptions.get(consumerId).getOffset();
-            int offset = ind + 1;
+            int offset = messageQueue.subscriptions.get(consumerId).getOffset();
+            int next_offset = 0;
+            if (offset > -1) {
+                Indexer.Entry entry = Indexer.getEntry(topic, offset);
+                next_offset = offset + entry.getLength();
+            }
             List<Message<?>> result = new ArrayList<>();
-            Message<?> receive = messageQueue.receive(offset);
+            Message<?> receive = messageQueue.receive(next_offset);
             while (receive != null) {
                 result.add(receive);
                 if (result.size() >= size) break;
@@ -59,29 +77,28 @@ public class MessageQueue {
                 + topic + "/" + consumerId);
     }
 
-    public Message<?> receive(int ind) {
-        if (ind <= index) return queue[ind];
-        return null;
+    public Message<?> receive(int offset) {
+        return store.read(offset);
     }
 
-    public void subscribe(MessageSubscription subscription) {
+    public void subscribe(Subscription subscription) {
         String consumerId = subscription.getConsumerId();
         subscriptions.putIfAbsent(consumerId, subscription);
     }
 
-    public void unsubscribe(MessageSubscription subscription) {
+    public void unsubscribe(Subscription subscription) {
         String consumerId = subscription.getConsumerId();
         subscriptions.remove(consumerId);
     }
 
-    public static void sub(MessageSubscription subscription) {
+    public static void sub(Subscription subscription) {
         MessageQueue messageQueue = queues.get(subscription.getTopic());
         System.out.println(" ==>> sub: " + subscription);
         if (messageQueue == null) throw new RuntimeException("topic not found");
         messageQueue.subscribe(subscription);
     }
 
-    public static void unsub(MessageSubscription subscription) {
+    public static void unsub(Subscription subscription) {
         MessageQueue messageQueue = queues.get(subscription.getTopic());
         System.out.println(" ==>> unsub: " + subscription);
         if (messageQueue == null) return;
@@ -95,7 +112,7 @@ public class MessageQueue {
         return messageQueue.send(message);
     }
 
-    public static Message<?> receive(String topic, String consumerId, int ind) {
+    public static Message<?> receive(String topic, String consumerId, int offset) {
         MessageQueue messageQueue = queues.get(topic);
         if (messageQueue == null) {
             throw new RuntimeException("topic not found");
@@ -104,7 +121,7 @@ public class MessageQueue {
             throw new RuntimeException("subscriptions not found for topic/consumerId = "
                     + topic + "/" + consumerId);
         }
-        return messageQueue.receive(ind);
+        return messageQueue.receive(offset);
     }
 
     // 使用此方法，需要手工调用ack，更新订阅关系里的offset
@@ -121,9 +138,14 @@ public class MessageQueue {
                     + topic + "/" + consumerId);
         }
 
-        int ind = messageQueue.subscriptions.get(consumerId).getOffset();
-        Message<?> receive = messageQueue.receive(ind + 1);
-        System.out.println(" ===>> receive: topic/cid/ind = " + topic + "/" + consumerId + "/" + ind);
+        int offset = messageQueue.subscriptions.get(consumerId).getOffset();
+        int next_offset = 0;
+        if (offset > -1) {
+            Indexer.Entry entry = Indexer.getEntry(topic, offset);
+            next_offset = offset + entry.getLength();
+        }
+        Message<?> receive = messageQueue.receive(next_offset);
+        System.out.println(" ===>> recv: topic/cid/ind = " + topic + "/" + consumerId + "/" + next_offset);
         System.out.println(" ===>> message: " + receive);
         return receive;
     }
@@ -138,8 +160,8 @@ public class MessageQueue {
                     + topic + "/" + consumerId);
         }
 
-        MessageSubscription subscription = messageQueue.subscriptions.get(consumerId);
-        if (offset > subscription.getOffset() && offset <= messageQueue.index) {
+        Subscription subscription = messageQueue.subscriptions.get(consumerId);
+        if (offset > subscription.getOffset() && offset < Store.LEN) {
             System.out.println(" ===>> ack: topic/cid/offset = "
                     + topic + "/" + consumerId + "/" + offset);
             subscription.setOffset(offset);

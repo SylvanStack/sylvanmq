@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.yuanstack.sylvanmq.model.Message;
 import com.yuanstack.sylvanmq.model.Result;
+import com.yuanstack.sylvanmq.model.Stat;
 import com.yuanstack.sylvanmq.utils.HttpUtils;
 import com.yuanstack.sylvanmq.utils.ThreadUtils;
 import lombok.Getter;
@@ -105,5 +106,15 @@ public class Broker {
 
     public void addConsumer(String topic, Consumer<?> consumer) {
         consumers.add(topic, consumer);
+    }
+
+    public Stat stat(String topic, String cid) {
+        System.out.println(" ==>> stat topic/cid: " + topic + "/" + cid);
+        Result<Stat> result = HttpUtils.httpGet(
+                brokerUrl + "/stat?t=" + topic + "&cid=" + cid,
+                new TypeReference<Result<Stat>>() {
+                });
+        System.out.println(" ==>> stat result: " + result);
+        return result.getData();
     }
 }

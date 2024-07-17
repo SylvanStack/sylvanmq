@@ -2,12 +2,12 @@ package com.yuanstack.sylvanmq.server;
 
 import com.yuanstack.sylvanmq.model.Message;
 import com.yuanstack.sylvanmq.model.Result;
+import com.yuanstack.sylvanmq.model.Subscription;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,14 +49,14 @@ public class MQServer {
     @RequestMapping("/subscribe")
     public Result<String> subscribe(@RequestParam("t") String topic,
                                     @RequestParam("cid") String consumerId) {
-        MessageQueue.sub(new MessageSubscription(topic, consumerId, -1));
+        MessageQueue.sub(new Subscription(topic, consumerId, -1));
         return Result.ok();
     }
 
     @RequestMapping("/unsubscribe")
     public Result<String> unsubscribe(@RequestParam("t") String topic,
                                       @RequestParam("cid") String consumerId) {
-        MessageQueue.unsub(new MessageSubscription(topic, consumerId, -1));
+        MessageQueue.unsub(new Subscription(topic, consumerId, -1));
         return Result.ok();
     }
 }
