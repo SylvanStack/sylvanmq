@@ -3,6 +3,8 @@ package com.yuanstack.sylvanmq.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author Sylvan
  * @date 2024/07/14  23:00
@@ -26,6 +28,10 @@ public class Result<T> {
     }
 
     public static Result<Message<?>> msg(Message<?> msg) {
+        return new Result<>(1, msg);
+    }
+
+    public static Result<List<Message<?>>> msg(List<Message<?>> msg) {
         return new Result<>(1, msg);
     }
 }
