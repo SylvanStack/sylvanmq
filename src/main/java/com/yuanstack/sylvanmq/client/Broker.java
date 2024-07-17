@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.yuanstack.sylvanmq.model.Message;
 import com.yuanstack.sylvanmq.model.Result;
 import com.yuanstack.sylvanmq.utils.HttpUtils;
+import com.yuanstack.sylvanmq.utils.ThreadUtils;
 import lombok.Getter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,28 +25,28 @@ public class Broker {
 
 
     static {
-        //init();
+        init();
     }
 
-    //public static void init() {
-    //    ThreadUtils.getDefault().init(1);
-    //    ThreadUtils.getDefault().schedule(() -> {
-    //        MultiValueMap<String, Consumer<?>> consumers = getDefault().getConsumers();
-    //        consumers.forEach((topic, consumers1) -> {
-    //            consumers1.forEach(consumer -> {
-    //                Message<?> receive = consumer.receive(topic);
-    //                if (receive == null) return;
-    //                try {
-    //                    consumer.getListener().onMessage(receive);
-    //                    consumer.ack(topic, receive);
-    //                } catch (Exception ex) {
-    //                    // TODO
-    //                }
-    //            });
-    //        });
-    //
-    //    }, 100, 100);
-    //}
+    public static void init() {
+        ThreadUtils.getDefault().init(1);
+        ThreadUtils.getDefault().schedule(() -> {
+            MultiValueMap<String, Consumer<?>> consumers = getDefault().getConsumers();
+            consumers.forEach((topic, consumers1) -> {
+                consumers1.forEach(consumer -> {
+                    Message<?> receive = consumer.receive(topic);
+                    if (receive == null) return;
+                    try {
+                        consumer.getListener().onMessage(receive);
+                        consumer.ack(topic, receive);
+                    } catch (Exception ex) {
+                        // TODO
+                    }
+                });
+            });
+
+        }, 100, 100);
+    }
 
     public Producer createProducer() {
         return new Producer(this);
