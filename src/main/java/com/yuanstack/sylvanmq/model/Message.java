@@ -37,12 +37,12 @@ public class Message<T> implements Serializable {
      */
     private Map<String, String> headers = new HashMap<>();
 
-    public static long getId() {
+    public static long nextId() {
         return idgen.getAndIncrement();
     }
 
-    public static Message<?> create(String body, Map<String, String> headers) {
-        return new Message<>(getId(), body, headers);
+    public static Message<String> create(String body, Map<String, String> headers) {
+        return new Message<>(nextId(), body, headers);
     }
     ///**
     // * 消息标签
